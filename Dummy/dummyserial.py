@@ -2,8 +2,8 @@ import serial
 import time
 
 # define serial port, baud rate, and timeout
-port = "COM7"
-baudrate = 115200
+port = "COM9"
+baudrate = 38400
 timeout = 0.1
 
 arduino = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
@@ -17,7 +17,7 @@ def write_read(x):
 
 
 while True:
-    dummy = open("dummy.txt", "r")
+    dummy = open("F:\AIS RECEIVER\AISParser\Dummy\dummy.txt", "r")
     for x in dummy:
         # remove whitespace from string
         aisdat = x.rstrip()

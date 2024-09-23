@@ -1,6 +1,6 @@
 #include <AIS.h>
 
-#define RXD2 16
+#define RXD2 18
 #define TXD2 17
 /* Coming from util.h */
 #define htonl(x) ( ((x)<<24 & 0xFF000000UL) | \
@@ -9,87 +9,190 @@
                    ((x)>>24 & 0x000000FFUL) )
 #define htons(x) ( ((x)<<8) | (((x)>>8)&0xFF) )
 
-void printDegrees(long min4) 
+// ========Begin Dynamic Data========
+String showLongitude(AIS& ais_msg) 
 {
-//    Serial.print(min4); Serial.print(" (");Serial.print(min4,16);Serial.println(")");
-    long intPart = min4 / 60L;
-    long fracPart = intPart % 10000L;
-    if (fracPart < 0)
-      fracPart = -fracPart;
-    char frac[6];
-    sprintf(frac, "%04ld", fracPart);
-    Serial.print(intPart/10000L);Serial.print(".");Serial.print(frac);
+  long in = ais_msg.get_longitude();
+  long intPart = in / 60L;
+  long fracPart = intPart % 10000L;
+  if (fracPart < 0)
+    fracPart = -fracPart;
+  char frac[6];
+  sprintf(frac, "%04ld", fracPart);
+  // Serial.print(intPart/10000L);Serial.print(".");Serial.print(frac);
+  String integerpart = String(intPart/10000L);
+  String decimalpart = String(frac);
+  String out = integerpart+"."+decimalpart;
+
+  return out;
 }
 
-void showMMSI(AIS& ais_msg) {
+String showLatitude(AIS& ais_msg) 
+{
+  long in = ais_msg.get_latitude();
+  long intPart = in / 60L;
+  long fracPart = intPart % 10000L;
+  if (fracPart < 0)
+    fracPart = -fracPart;
+  char frac[6];
+  sprintf(frac, "%04ld", fracPart);
+  // Serial.print(intPart/10000L);Serial.print(".");Serial.print(frac);
+  String integerpart = String(intPart/10000L);
+  String decimalpart = String(frac);
+  String out = integerpart+"."+decimalpart;
+
+  return out;
+}
+
+String showSOG(AIS& ais_msg) {
+  unsigned int in = ais_msg.get_SOG();
+  String integerpart = String((in) / 10);
+  String decimalpart = String((in) % 10);
+  String out = integerpart+"."+decimalpart;
+
+  return out;
+}
+
+String showCOG(AIS& ais_msg) {
+  unsigned int in = ais_msg.get_COG();
+  String integerpart = String((in) / 10);
+  String decimalpart = String((in) % 10);
+  String out = integerpart+"."+decimalpart;
+
+  return out;
+}
+
+unsigned int heading(AIS& ais_msg) {
+  unsigned int hdg = ais_msg.get_HDG();
+  return hdg;
+}
+
+unsigned int timestamp(AIS& ais_msg) {
+  unsigned int time = ais_msg.get_timeStamp();
+  return time;
+}
+// ========End Dynamic Data========
+
+// ========Begin Static Data========
+String getETA(AIS& ais_msg)
+{
+  unsigned int month = ais_msg.get_month();
+  unsigned int day = ais_msg.get_day();
+  unsigned int hour = ais_msg.get_hour();
+  unsigned int minute = ais_msg.get_minute(); 
+  String out = String(month)+"-"+String(day)+"-"+String(hour)+"-"+String(minute);
+
+  return out;
+}
+
+String getDestination(AIS& ais_msg) 
+{
+  const char* destination = ais_msg.get_destination();
+  return String(destination);
+}
+
+String getName(AIS& ais_msg) 
+{
+  const char* name = ais_msg.get_shipname();
+  return String(name);
+}
+
+long showMMSI(AIS& ais_msg) {
   unsigned long mmsi = ais_msg.get_mmsi();
-  Serial.print("Returned MMSI: ");
-  Serial.print(mmsi);
-  Serial.print(" ("); Serial.print(mmsi, 16); Serial.print(" )");
-  Serial.println("");
+  return mmsi;
 }
 
-void showSOG(AIS& ais_msg) {
-    unsigned int SOG = ais_msg.get_SOG();
-    Serial.print("Returned SOG: ");
-    Serial.print( (SOG) / 10 ); Serial.print("."); Serial.print( (SOG) % 10 ); Serial.println(" nm");  
+long showIMO(AIS& ais_msg) {
+  unsigned long imo = ais_msg.get_imo();
+  return imo;
 }
 
-void showCOG(AIS& ais_msg) {
-    unsigned int COG = ais_msg.get_COG();
-    Serial.print("Returned COG: ");
-    Serial.print( (COG) / 10 ); Serial.print("."); Serial.print( (COG) % 10 ); Serial.println(" degrees");  
+unsigned int getShipType(AIS& ais_msg)
+{
+  unsigned int type = ais_msg.get_shiptype();
+  return type;
 }
 
-void showLatitude(AIS& ais_msg) {
-    long LAT = ais_msg.get_latitude();
-    Serial.print("Returned LAT: "); printDegrees(LAT); Serial.println(" degrees");  
+String getDraught(AIS& ais_msg)
+{
+  unsigned int draught = ais_msg.get_draught();
+  String integerpart = String((draught) / 10);
+  String decimalpart = String((draught) % 10);
+  String out = integerpart+"."+decimalpart;
+  return out;
 }
+// ========End Static Data========
 
-void showLongitude(AIS& ais_msg) {
-    long LONG = ais_msg.get_longitude();
-    Serial.print("Returned LONG: "); printDegrees(LONG); Serial.println(" degrees");  
+unsigned int getMSgtype(AIS& ais_msg) 
+{
+  unsigned int msg = ais_msg.get_numeric_type();
+  return msg;
 }
 
 int loA(char *ptr)
 {
-    int sample = 0;
+  int sample = 0;
 
-    while (*ptr != '\0')
-    {
-        sample++;
-        ptr++;
-    }
-    return sample;
+  while (*ptr != '\0')
+  {
+    sample++;
+    ptr++;
+  }
+  return sample;
 }
 
 String getSentence()
 {
   String ais;
-  if(Serial2.available()>0) {
-    ais = Serial2.readStringUntil('!');
+  if(Serial1.available()>0) {
+    ais = Serial1.readStringUntil('!');
+    return ais;
   }
-  return ais;
 }
 
 char * converttoChars(String sentence)
 {
-  char * buf = (char *) malloc (100);
+  char * buf = (char *) malloc (500);
   sentence.toCharArray(buf,sentence.length());
+  
   return buf;
 }
 
 char * getDynamicMessageA(char * rawAIS)
 {
   char * ais = rawAIS;
-  static char out[1001];
+  char getChannel = ais[12];
   int store_index = 13;
-  int length = loA(ais);
-  for (int i = 0; i < length + 2; i++)
+  if(getChannel == ',')
   {
-    char a_s = ais[store_index];
-    out[i] = a_s;
-    store_index++;
+    store_index = 13;
+  }
+  else
+  {
+    store_index = 12;
+  }
+  static char out[1001];
+  memset(out, '\0', 1001); // clear char buffer
+  int length = loA(ais);
+  int indexGPS = String(ais).indexOf('$');
+
+  if(indexGPS>0)
+  {
+    for (int i = 0; i < indexGPS-14; i++)
+    {
+      char a_s = ais[store_index];
+      out[i] = a_s;
+      store_index++;
+    }
+  }
+  else
+  {
+    for (int i = 0; i < length; i++)
+    {
+      char a_s = ais[store_index];
+      out[i] = a_s;
+      store_index++;
+    }
   }
   return out;
 }
@@ -97,25 +200,46 @@ char * getDynamicMessageA(char * rawAIS)
 void setup() {
   // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
   Serial.begin(115200);
-  Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+  Serial1.begin(38400, SERIAL_8N1, RXD2, TXD2);
 }
 
 void loop() { //Choose Serial1 or Serial2 as required
   // Serial.print(getSentence());
   char * rawAIS = converttoChars(getSentence());
   char * msg = getDynamicMessageA(rawAIS);
-  char isStatic = rawAIS[8];
-  char msgType = rawAIS[13];
-  // Serial.println(msgType);
-  // Serial.println(rawAIS);
+  // // Serial.println(msgType);
   // Serial.println(msg);
-  // Serial.println(isStatic);
-  // AIS ais_msg(msg);
-  // showMMSI(ais_msg);
-  // showSOG(ais_msg);
-  // showCOG(ais_msg);
-  // showLatitude(ais_msg);
-  // showLongitude(ais_msg);
+  AIS ais_msg(msg);
+  // Dynamic
+  String lon = showLongitude(ais_msg) ;
+  String lat = showLatitude(ais_msg);
+  String sog = showSOG(ais_msg);
+  String cog = showCOG(ais_msg);
+  unsigned int hdg = heading(ais_msg);
+  unsigned int time = timestamp(ais_msg);
+  // Static
+  long mmsi = showMMSI(ais_msg);
+  long imo = showIMO(ais_msg);
+  String eta = getETA(ais_msg);
+  String destination = getDestination(ais_msg);
+  String name = getName(ais_msg);
+  String draught = getDraught(ais_msg);
+  int shiptype = getShipType(ais_msg);
+ 
+  Serial.println(lon);
+  Serial.println(lat);
+  Serial.println(sog);
+  Serial.println(cog);
+  Serial.println(hdg);
+  Serial.println(time);
+  Serial.println(eta);
+  Serial.println(destination);
+  Serial.println(name);
+  Serial.println(imo);
+  Serial.println(mmsi);
+  Serial.println(draught);
+  Serial.println(shiptype);
+  Serial.println(getMSgtype(ais_msg));
   free(rawAIS);
   delay(10);
 }
