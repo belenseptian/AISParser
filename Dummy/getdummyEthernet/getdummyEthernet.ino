@@ -1,5 +1,12 @@
 #include <AIS.h>
+#include <SPI.h>
+#include <Ethernet.h>
 
+#define SCK       12
+#define SS        10
+#define MOSI      11
+#define MISO      13
+#define SPI_FREQ  32000000
 #define RXD2 18
 #define TXD2 17
 /* Coming from util.h */
@@ -8,6 +15,21 @@
                    ((x)>> 8 & 0x0000FF00UL) | \
                    ((x)>>24 & 0x000000FFUL) )
 #define htons(x) ( ((x)<<8) | (((x)>>8)&0xFF) )
+
+// Enter a MAC address for your controller below.
+// Newer Ethernet shields have a MAC address printed on a sticker on the shield
+byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+// Set the static IP address to use if the DHCP fails to assign
+IPAddress ip(192, 168, 1, 100); // example IPAddress ip(192, 168, 1, 100);
+
+// Init server name
+char server[] = "aispangkalbalam.42web.io";
+const int port = 80;
+
+// Initialize the Ethernet client library
+// with the IP address and port of the server
+// that you want to connect to (port 80 is default for HTTP):
+EthernetClient client;
 
 // ========Begin Dynamic Data========
 String showLongitude(AIS& ais_msg) 
@@ -145,9 +167,11 @@ String getSentence()
 {
   String ais;
   if(Serial1.available()>0) {
-    ais = Serial1.readStringUntil('!');
-    return ais;
+    ais = Serial1.readStringUntil('\n');
   }
+
+  ais.trim();
+  return ais;
 }
 
 char * converttoChars(String sentence)
@@ -201,45 +225,82 @@ void setup() {
   // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
   Serial.begin(115200);
   Serial1.begin(38400, SERIAL_8N1, RXD2, TXD2);
+  // // start the Ethernet connection:
+  // SPI.begin(SCK, MISO, MOSI, SS);
+  // SPI.setFrequency(SPI_FREQ);
+  // // You can use Ethernet.init(pin) to configure the CS pin
+  // Ethernet.init(SS);  // Most Arduino shields
+  // if (Ethernet.begin(mac) == 0) {
+  //   Serial.println("Failed to configure Ethernet using DHCP");
+  //   // try to congifure using IP address instead of DHCP:
+  //   Ethernet.begin(mac, ip);
+  // }
+  // else
+  // {
+  //   Serial.println("Connected");
+  // }
+  delay(1000);
 }
 
 void loop() { //Choose Serial1 or Serial2 as required
   // Serial.print(getSentence());
   char * rawAIS = converttoChars(getSentence());
-  char * msg = getDynamicMessageA(rawAIS);
+  // char * msg = getDynamicMessageA(rawAIS);
   // // Serial.println(msgType);
-  // Serial.println(msg);
-  AIS ais_msg(msg);
-  // Dynamic
-  String lon = showLongitude(ais_msg) ;
-  String lat = showLatitude(ais_msg);
-  String sog = showSOG(ais_msg);
-  String cog = showCOG(ais_msg);
-  unsigned int hdg = heading(ais_msg);
-  unsigned int time = timestamp(ais_msg);
-  // Static
-  long mmsi = showMMSI(ais_msg);
-  long imo = showIMO(ais_msg);
-  String eta = getETA(ais_msg);
-  String destination = getDestination(ais_msg);
-  String name = getName(ais_msg);
-  String draught = getDraught(ais_msg);
-  int shiptype = getShipType(ais_msg);
+  Serial.println(rawAIS);
+  //Serial.println(msg);
+  // AIS ais_msg(msg);
+  // // Dynamic
+  // String lon = showLongitude(ais_msg) ;
+  // String lat = showLatitude(ais_msg);
+  // String sog = showSOG(ais_msg);
+  // String cog = showCOG(ais_msg);
+  // unsigned int hdg = heading(ais_msg);
+  // unsigned int time = timestamp(ais_msg);
+  // // Static
+  // long mmsi = showMMSI(ais_msg);
+  // long imo = showIMO(ais_msg);
+  // String eta = getETA(ais_msg);
+  // String destination = getDestination(ais_msg);
+  // String name = getName(ais_msg);
+  // String draught = getDraught(ais_msg);
+  // int shiptype = getShipType(ais_msg);
  
-  Serial.println(lon);
-  Serial.println(lat);
-  Serial.println(sog);
-  Serial.println(cog);
-  Serial.println(hdg);
-  Serial.println(time);
-  Serial.println(eta);
-  Serial.println(destination);
-  Serial.println(name);
-  Serial.println(imo);
-  Serial.println(mmsi);
-  Serial.println(draught);
-  Serial.println(shiptype);
-  Serial.println(getMSgtype(ais_msg));
+  // Serial.println(lon);
+  // Serial.println(lat);
+  // Serial.println(sog);
+  // Serial.println(cog);
+  // Serial.println(hdg);
+  // Serial.println(time);
+  // Serial.println(eta);
+  // Serial.println(destination);
+  // Serial.println(name);
+  // Serial.println(imo);
+  // Serial.println(mmsi);
+  // Serial.println(draught);
+  // Serial.println(shiptype);
+  // Serial.println(getMSgtype(ais_msg));
+  // if (client.connect(server, port)) { 
+  //   Serial.print("connected asksensors.com");
+  //   //Create a URL for the request
+  //   String url = "http://asksensors.com/api.asksensors/write/";
+  //   url += apiKeyIn;
+  //   url += "?module1=";
+  //   url += dumData;
+  //   Serial.print("********** requesting URL: ");
+  //   Serial.println(url);
+  //   //Make a HTTP request:
+  //   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+  //             "Host: " + server + "\r\n" +
+  //             "Connection: close\r\n\r\n");
+  //   client.println();
+    
+  //   Serial.println("> Request sent to ASKSENSORS");
+  // } else {
+  //   // if you didn't get a connection to the server:
+  //   Serial.println("connection failed");
+  // }
+  
   free(rawAIS);
   delay(10);
 }

@@ -131,7 +131,7 @@ unsigned int getMSgtype(AIS& ais_msg)
 void setup() {
   Serial.begin(115200);
 
-  AIS ais_msg("13u?etPv2;0n:dDPwUM1U1Cb069D,0*23");
+  AIS ais_msg("57ldoeT25C<0a`4f2204l5`TpN0M84<F3SN222167PC666F:?<D0CRhC80PC,0*2D");
   /* Console output (!AIVDM,1,1,,A,14eG;o@034o8sd<L9i:a;WF>062D,0*7D)
    *  
    * Returned MMSI: 316001245 (12D5CBDD )
