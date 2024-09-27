@@ -17,7 +17,7 @@ def write_read(x):
 
 
 while True:
-    dummy = open("F:\AIS RECEIVER\AISParser\Dummy\dum.txt", "r")
+    dummy = open("F:\AIS RECEIVER\AISParser\Dummy\AIS_newlog.txt", "r")
     for x in dummy:
         # remove whitespace from string
         aisdat = x.rstrip()
